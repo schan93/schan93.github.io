@@ -1,0 +1,114 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Restaurant Locator - by Algolia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/css/normalize.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <!-- CSS style sheets from Algolia Helper JS documentation -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/jquery.ion.rangeslider/2.0.12/css/ion.rangeSlider.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/jquery.ion.rangeslider/2.0.12/css/ion.rangeSlider.skinFlat.css">
+  </head>
+  <body class="welcome-container">
+
+  <header>
+    <!-- Algolia Search Bar in top -->
+    <input id="search-input" type="text" autocomplete="off" spellcheck="false" autocorrect="off" placeholder="Search for Restaurants by Name, Cuisine, Location"/>
+    <div id="search-input-icon"></div>
+  </header>
+  <main>
+    <!-- Fascets on the left -->
+    <div id="left-column">
+      <div id="facets"></div>
+    </div>
+    <!-- Right Column showing the stats and hits-->
+    <div id="right-column">
+      <div id="stats"></div>
+      <div id="hits"></div>
+      <div id="pagination"></div>
+    </div>
+  </main>
+
+
+    <!-- Search hit results with Image on the left and name, rating (followed by number of ratings), 
+    food type / location / price range -->
+    <script type="text/template" id="hit-template">
+      {{#hits}}
+      <div class="hit">
+        <div class="hit-image">
+          <img src="{{ image_url }}" alt="{{ _highlightResult.name.value }}">
+        </div>
+        <div class="hit-content">
+          <h3 class="hit-name">{{{ name }}}</h3>
+          <span class="stars-count">{{{stars_count}}}</span>
+          <span class="stars-empty">
+              <span class="stars">{{{stars_count}}}</span>
+          </span>
+          <span class="reviews-count">({{{reviews_count}}} Reviews)</span>
+          <p class="hit-description">{{{ food_type }}} | {{{ neighborhood }}} | {{ price_range }} </p>
+        </div>
+      </div>
+      {{/hits}}
+    </script>
+
+    <!-- Stats template -->
+    <script type="text/template" id="stats-template">
+      <span><h3>{{ nbHits }} result{{#nbHits_plural}}s{{/nbHits_plural}} found<span class="found-in"> in {{ processingTimeMS }} seconds</h3></span>
+    </script>
+
+    <!-- Pagination template -->
+    <script type="text/template" id="pagination-template">
+      <ul>
+        <li {{^prev_page}}class="disabled"{{/prev_page}}><a href="#" {{#prev_page}}class="go-to-page" data-page="{{ prev_page }}"{{/prev_page}}>Show Less</a></li>
+        {{#pages}}
+<!--         <li class="{{#current}}active{{/current}} {{#disabled}}disabled{{/disabled}}"><a href="#" {{^disabled}} class="go-to-page" data-page="{{ number }}" {{/disabled}}>{{ number }}</a></li>
+        {{/pages}} -->
+        <li {{^next_page}}class="disabled"{{/next_page}}><a href="#" {{#next_page}}class="go-to-page" data-page="{{ next_page }}"{{/next_page}}>Show more</a></li>
+      </ul>
+    </script>
+
+    <!-- Facet template -->
+    <script type="text/template" id="facet-template">
+      <div class="facet">
+        <h3>{{ title }}</h3>
+        <ul>
+          {{#values}}
+          <li>
+            <a href="" class="facet-link toggle-refine" data-facet="{{ facet }}" data-value="{{ name }}">
+              {{ name }}<span class="facet-count">{{ count }}</span>
+            </a>
+          </li>
+          {{/values}}
+        </ul>
+      </div>
+    </script>
+
+    <!-- No-Results template -->
+    <script type="text/template" id="no-results-template">
+      <div id="no-results-message">
+        <p>We didn't find any results for the search <em>"{{ query }}"</em>.</p>
+        <ul>
+          {{#filters}}
+          <li class="{{ class }}" data-facet="{{ facet }}" data-value="{{ facet_value }}">
+            {{ label }}<span class="value">{{ label_value }}</span><a class="remove"><img src="img/remove.svg"/></a>
+          </li>
+          {{/filters}}
+          <br>
+          <a href="" class='clear-all'>Clear all</a>
+        </ul>
+      </div>
+    </script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="assets/js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
+  <script src="assets/js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
+  <!-- JS files from Algolia Helper JS documentation -->
+  <script src="https://cdn.jsdelivr.net/algoliasearch/3/algoliasearch.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/algoliasearch.helper/2/algoliasearch.helper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/hogan.js/3.0.2/hogan.min.common.js"></script>
+  <script src="https://cdn.jsdelivr.net/jquery.ion.rangeslider/2.0.12/js/ion.rangeSlider.min.js"></script>
+  </body>
+</html>
