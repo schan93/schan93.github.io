@@ -76,7 +76,6 @@ $(document).ready(function () {
 
 	var setHeight = function() {
 		var leftCol = $("#left-column");
-	    var rightCol = $("#right-column");
 		var paginationContainer = $('#pagination');
 		var hitsContainer = $('#hits');
 		var statsContainer = $('#stats');
@@ -86,12 +85,7 @@ $(document).ready(function () {
 		paginationContainer.css('padding-bottom', '73px');
 		hitsContainer.css('padding', '0 0 10px 44px');
 		statsContainer.css('padding', '20px 40px');
-
-		var largerHeight = Math.min(leftCol.height(), rightCol.height());
-
-	    //Need to create some of height because leftCol is shorter than rightCol
-	    leftCol.height(largerHeight + 5.5 + "px");
-	    rightCol.height(largerHeight + "px");
+	   	leftCol.width('25%');
 	};
 
 	//Show Facets when the results are loaded.
@@ -154,11 +148,13 @@ $(document).ready(function () {
 	function renderHits(content) {
 		var promise = new Promise(function(resolve, reject) {
 			$hits.html(hitTemplate.render(content));
-			resolve();
+			resolve(content.hits.length);
 		});
-		promise.then(function(val) {
+		promise.then(function(numHits) {
 			$(function() {
 			  $('span.stars').stars();
+			  //Change height of hits
+			  changeHitsHeight(numHits);
 			});
 		});
 		$.fn.stars = function() { 
@@ -175,6 +171,28 @@ $(document).ready(function () {
 		  });
 		}
 	};
+
+	//Depending on how many hits we get, we have to dynamically change the height of the columns
+	function changeHitsHeight(numHits) {
+		var leftCol = $("#left-column");
+		if( navigator.userAgent.toLowerCase().indexOf('firefox') > -1 ){
+			if(numHits === 1) {
+				leftCol.height("308.5px");	
+			} else if(numHits === 2) {
+				leftCol.height("434px");
+			} else {
+				leftCol.height("559px");
+			}
+		} else {
+			if(numHits === 1) {
+				leftCol.height("314px");	
+			} else if(numHits === 2) {
+				leftCol.height("442px");
+			} else {
+				leftCol.height("569.5px");
+			}
+		}
+	}			
 
 	
 
@@ -257,16 +275,14 @@ $(document).ready(function () {
           algoliaHelper.setQueryParameter('aroundLatLng', pos.lat + ' , ' + pos.lng).search();
         }, function(){
         	//There is an error getting the location for whatever reason
-        	locationError(true, pos);
+        	locationError(true);
         });
       } else {
-      	locationError(false, pos);
+      	locationError(false);
       }
 	}
 
-	function locationError(hasLocation, pos) {
-		var alertMessage = hasLocation ? 'There was an error getting your geolocation, but search will still work.' : 'Your browser does not support geolocation, but search will still work.';
-		alert(alertMessage);
+	function locationError(hasLocation) {
 		//No location to store
 		sessionStorage.setItem('location.latitude', '');
         sessionStorage.setItem('location.longitude', '');
