@@ -1,4 +1,4 @@
-#Restaurant Locator Page
+#Restaurant Locator
 
 Prerequisites: python3
 
