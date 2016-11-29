@@ -172,22 +172,23 @@ $(document).ready(function () {
 		}
 	};
 
-	//Depending on how many hits we get, we have to dynamically change the height of the columns
+	//Depending on how many hits we get, we have to dynamically change the height of the columns.
+	//This also has to do with the fact that the pagination (show more / less button) so the height doesn't look proper 
 	function changeHitsHeight(numHits) {
 		var leftCol = $("#left-column");
 		if( navigator.userAgent.toLowerCase().indexOf('firefox') > -1 ){
 			if(numHits === 1) {
-				leftCol.height("308.5px");	
+				leftCol.height("294px");	
 			} else if(numHits === 2) {
-				leftCol.height("434px");
+				leftCol.height("420px");
 			} else {
 				leftCol.height("559px");
 			}
 		} else {
 			if(numHits === 1) {
-				leftCol.height("314px");	
+				leftCol.height("298px");	
 			} else if(numHits === 2) {
-				leftCol.height("442px");
+				leftCol.height("425.5px");
 			} else {
 				leftCol.height("569.5px");
 			}
@@ -224,38 +225,6 @@ $(document).ready(function () {
       rightColumn.css('margin-left', '0%');
       leftColumn.hide();
 	  var filters = [];
-	  var i;
-	  var j;
-	  for (i in algoliaHelper.state.facetsRefinements) {
-	    filters.push({
-	      class: 'toggle-refine',
-	      facet: i, facet_value: algoliaHelper.state.facetsRefinements[i],
-	      label: FACETS_LABELS[i] + ': ',
-	      label_value: algoliaHelper.state.facetsRefinements[i]
-	    });
-	  }
-	  for (i in algoliaHelper.state.disjunctiveFacetsRefinements) {
-	    for (j in algoliaHelper.state.disjunctiveFacetsRefinements[i]) {
-	      filters.push({
-	        class: 'toggle-refine',
-	        facet: i,
-	        facet_value: algoliaHelper.state.disjunctiveFacetsRefinements[i][j],
-	        label: FACETS_LABELS[i] + ': ',
-	        label_value: algoliaHelper.state.disjunctiveFacetsRefinements[i][j]
-	      });
-	    }
-	  }
-	  for (i in algoliaHelper.state.numericRefinements) {
-	    for (j in algoliaHelper.state.numericRefinements[i]) {
-	      filters.push({
-	        class: 'remove-numeric-refine',
-	        facet: i,
-	        facet_value: j,
-	        label: FACETS_LABELS[i] + ' ',
-	        label_value: j + ' ' + algoliaHelper.state.numericRefinements[i][j]
-	      });
-	    }
-	  }
 	  $hits.html(noResultsTemplate.render({query: content.query, filters: filters}));
 	}
 
@@ -275,14 +244,14 @@ $(document).ready(function () {
           algoliaHelper.setQueryParameter('aroundLatLng', pos.lat + ' , ' + pos.lng).search();
         }, function(){
         	//There is an error getting the location for whatever reason
-        	locationError(true);
+        	locationError();
         });
       } else {
-      	locationError(false);
+      	locationError();
       }
 	}
 
-	function locationError(hasLocation) {
+	function locationError() {
 		//No location to store
 		sessionStorage.setItem('location.latitude', '');
         sessionStorage.setItem('location.longitude', '');

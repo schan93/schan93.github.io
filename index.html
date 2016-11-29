@@ -61,11 +61,11 @@
     <!-- Pagination template -->
     <script type="text/template" id="pagination-template">
       <ul>
-        <li {{^prev_page}}class="disabled"{{/prev_page}}><a href="#" {{#prev_page}}class="go-to-page" data-page="{{ prev_page }}"{{/prev_page}}>Show Less</a></li>
+        <li {{^prev_page}}class="hidden"{{/prev_page}}><a href="#" {{#prev_page}}class="go-to-page" data-page="{{ prev_page }}"{{/prev_page}}>Show Less</a></li>
         {{#pages}}
 <!--         <li class="{{#current}}active{{/current}} {{#disabled}}disabled{{/disabled}}"><a href="#" {{^disabled}} class="go-to-page" data-page="{{ number }}" {{/disabled}}>{{ number }}</a></li>
         {{/pages}} -->
-        <li {{^next_page}}class="disabled"{{/next_page}}><a href="#" {{#next_page}}class="go-to-page" data-page="{{ next_page }}"{{/next_page}}>Show more</a></li>
+        <li {{^next_page}}class="hidden"{{/next_page}}><a href="#" {{#next_page}}class="go-to-page" data-page="{{ next_page }}"{{/next_page}}>Show more</a></li>
       </ul>
     </script>
 
@@ -96,7 +96,6 @@
           </li>
           {{/filters}}
           <br>
-          <a href="" class='clear-all'>Clear all</a>
         </ul>
       </div>
     </script>
