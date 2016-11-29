@@ -14,11 +14,11 @@ html {
 
 header, main, #no-results, footer {
 	width: 1100px;
-	height: 1000px;
 	margin: 0 auto;
 }
 
 #left-column {
+	overflow-y: scroll;
 	float: left;
 	width: 25%;
 	background-color: #ffffff;
@@ -63,7 +63,6 @@ header {
 // ------------------------- */
 
 #hits {
-	padding: 0 0 10px 44px;
 	background-color: #ffffff;
 }
 .hit {
@@ -131,7 +130,6 @@ header {
 
 #pagination {
 	background-color: #FFF;
-	padding-bottom: 80px;
 }
 #pagination ul {
 	font-size: 0;
@@ -183,7 +181,6 @@ header {
 #stats {
 	//Make sure that stats template goes above the hits template
 	background-color: #ffffff;
-	padding: 20px 40px;
 	//Don't show the border underneath the letters
 	overflow: hidden;
 	font-weight: bold;
@@ -263,6 +260,11 @@ header {
 .no-results #pagination, .no-results #sort-by, .no-results #stats, .no-results #facets {
 	display: none;
 }
+.no-results-container {
+	padding-top: 50px;
+	font-size: 16px;
+}
+
 #no-results-message {
 	text-align: center;
 }

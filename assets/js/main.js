@@ -71,7 +71,28 @@ $(document).ready(function () {
 	  renderFacets(content, state);
 	  renderPagination(content);
 	  handleNoResults(content);
+	  setHeight();
 	});
+
+	var setHeight = function() {
+		var leftCol = $("#left-column");
+	    var rightCol = $("#right-column");
+		var paginationContainer = $('#pagination');
+		var hitsContainer = $('#hits');
+		var statsContainer = $('#stats');
+
+	    //Now need to set the padding heights of the hits, stats, and pagination because it will show up as 
+	    //odd white text when we first load our browser
+		paginationContainer.css('padding-bottom', '73px');
+		hitsContainer.css('padding', '0 0 10px 44px');
+		statsContainer.css('padding', '20px 40px');
+
+		var largerHeight = Math.min(leftCol.height(), rightCol.height());
+
+	    //Need to create some of height because leftCol is shorter than rightCol
+	    leftCol.height(largerHeight + 5.5 + "px");
+	    rightCol.height(largerHeight + "px");
+	};
 
 	//Show Facets when the results are loaded.
 	function renderFacets(content, state) {
@@ -140,7 +161,6 @@ $(document).ready(function () {
 			  $('span.stars').stars();
 			});
 		});
-
 		$.fn.stars = function() { 
 		  return this.each(function() {
 		    // Get the value
@@ -170,12 +190,21 @@ $(document).ready(function () {
 
 	//Show no results in search results section
 	function handleNoResults(content) {
+	  var rightColumn = $('#right-column');
+	  var leftColumn = $('#left-column');
 	  if (content.nbHits > 0) {
+	  	//Need to revert the search results css back to what it was originally
 	    $main.removeClass('no-results');
+	    rightColumn.width('75%');
+	    rightColumn.css('margin-left', '25%');
+		leftColumn.show();
 	    return;
 	  }
+	  //Set "no results" page to fill up the entire width & hide the left column
 	  $main.addClass('no-results');
-
+      rightColumn.width('100%');
+      rightColumn.css('margin-left', '0%');
+      leftColumn.hide();
 	  var filters = [];
 	  var i;
 	  var j;
@@ -212,7 +241,7 @@ $(document).ready(function () {
 	  $hits.html(noResultsTemplate.render({query: content.query, filters: filters}));
 	}
 
-	//Function to get the user's location so that queries are based on user's current location
+	//Function to get the user's location so tft queries are based on user's current location
 	function getLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
