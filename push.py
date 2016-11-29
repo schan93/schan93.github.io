@@ -10,39 +10,18 @@ def createIndex(appId, apiKey, indexName):
 
   #Create an index based on the restaurants_list AND the csv file
   index = client.init_index(indexName)
-  restaurants_list = json.load(open('resources/dataset/restaurants_list.json'))
+
+  #Loop through the restuarants_list and find all the payment_options. If there is a payment_option with 
+  restaurants_list = parseJson()
 
   #Add the restuarants_list into the index first
   index.add_objects(restaurants_list)
 
-  #Open the CSV file and get each of the object Ids from the restaurants_info csv
-  restaurantsCsv = 'resources/dataset/restaurants_info.csv'
-  restaurantsInfoJson = 'resources/dataset/restaurants_info.json'
-  #As the CSV file is being read, ensure that we write every row into a json file that can be used to update
-  #The original restaurants_list json file so that we can create one big index out of it
-  #Make sure that the stars_count or reviews_count are floats becaus they will be used in our custom ranking
-  reader = csv.DictReader(open(restaurantsCsv), delimiter=';')
-  with open(restaurantsInfoJson, 'w+') as textFile:
-  	listRows = []
-  	for row in reader:
-  	  newRow = {}
-  	  for key, value in row.items():
-  	  	if key == 'stars_count' or key == 'reviews_count':
-  	  	  newRow[key] = float(value)
-  	  	else:
-  	  	  newRow[key] = value
-  	  listRows.append(newRow)
-  	textFile.write(json.dumps(listRows))
+  #Open the CSV file and get each of the object Ids from the restaurants_info csv and generate JSON out of it
+  #So we can updating the current existing restaurants_list json
+  restaurants_info_json = parseCsv()
 
-  #Load the restaurants info now
-  restaurant_info_json = json.load(open(restaurantsInfoJson))
-  index.partial_update_objects(restaurant_info_json)
-
-  # Remove the generated restaurant info json file because it is not needed anymore
-  try:
-    os.remove(restaurantsInfoJson)
-  except OSError:
-    pass
+  index.partial_update_objects(restaurants_info_json)
 
   #Initialization of search settings
   #Note that the requirement is to search restaurants by name, cuisine, or location. 
@@ -66,6 +45,52 @@ def createIndex(appId, apiKey, indexName):
   }
 
   index.set_settings(settings)
+
+def parseCsv():
+  restaurantsCsv = 'resources/dataset/restaurants_info.csv'
+  restaurantsInfoJson = 'resources/dataset/restaurants_info.json'
+  #As the CSV file is being read, ensure that we write every row into a json file that can be used to update
+  #The original restaurants_list json file so that we can create one big index out of it
+  #Make sure that the stars_count or reviews_count are floats becaus they will be used in our custom ranking
+  reader = csv.DictReader(open(restaurantsCsv), delimiter=';')
+  with open(restaurantsInfoJson, 'w+') as textFile:
+    listRows = []
+    for row in reader:
+      newRow = {}
+      for key, value in row.items():
+        if key == 'stars_count' or key == 'reviews_count':
+          newRow[key] = float(value)
+        else:
+          newRow[key] = value
+      listRows.append(newRow)
+    textFile.write(json.dumps(listRows))
+
+  #Load the restaurants info now
+  restaurants_info_json = json.load(open(restaurantsInfoJson))
+
+  # Remove the generated restaurant info json file because it is not needed anymore
+  try:
+    os.remove(restaurantsInfoJson)
+  except OSError:
+    pass
+
+  return restaurants_info_json
+
+#Loop through restaurants_list json and set the Diners Club or Carte Blanche payment and set them to Discover cards.
+#For JCB or Pay with Open Table or Cash Only, we don't include them into filterable facets
+def parseJson():
+  restaurants_list = json.load(open('resources/dataset/restaurants_list.json'))
+  for obj in restaurants_list:
+    newPayments = []
+    for payment in obj['payment_options']:
+      if payment == 'Diners Club' or payment == 'Carte Blanche':
+        newPayments.append('Discover')
+      elif payment == 'JCB' or payment == 'Pay with OpenTable' or payment == 'Cash Only':
+        continue
+      else:
+        newPayments.append(payment)
+    obj['payment_options'] = newPayments
+  return restaurants_list
 
 def main():
   if len(sys.argv) != 4:
