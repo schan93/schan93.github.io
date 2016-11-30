@@ -201,7 +201,6 @@ header {
 	font-weight: bold;
 }
 
-//TODO: Make sure that as you scale the browser, the line goes with it
 #stats h3:after {
 	//Show the border after the found results
 	content:"";
@@ -241,6 +240,12 @@ header {
 }
 .facet li {
 	margin: 5px 30px;
+}
+
+.facet-link.facet-refined, .facet-link.facet-refined.facet-count {
+	background-color: #2897C5;
+  	color: #FFF;
+  	border-radius: 5px;
 }
 
 .facet li:hover .facet-link, .facet li:hover .facet-count {

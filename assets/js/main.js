@@ -6,7 +6,8 @@ $(document).ready(function () {
 	var PARAMS = {
 	  hitsPerPage: 3,
 	  maxValuesPerFacet: 7,
-	  facets: ['food_type', 'stars_count_category', 'payment_options'],
+	  facets: ['food_type', 'stars_count_category'],
+	  disjunctiveFacets: ['payment_options'],
 	  index: RESTAURANTS_INDEX
 	};
 
@@ -112,6 +113,7 @@ $(document).ready(function () {
 		      facet: facetName,
 		      title: FACETS_LABELS[facetName],
 		      values: content.getFacetValues(facetName, {sortBy: ['isRefined:desc', 'count:desc']}),
+		      disjunctive: $.inArray(facetName, PARAMS.disjunctiveFacets) !== -1
 		    };
 		   	facetsHtml += facetTemplate.render(facetContent);  
 	    }
