@@ -6,14 +6,13 @@ $(document).ready(function () {
 	var PARAMS = {
 	  hitsPerPage: 3,
 	  maxValuesPerFacet: 7,
-	  facets: ['food_type', 'stars_count', 'payment_options'],
+	  facets: ['food_type', 'stars_count_category', 'payment_options'],
 	  index: RESTAURANTS_INDEX
 	};
 
-	var FACETS_STARS_COUNT = ['stars_count'];
-	var FACETS_PAYMENT_OPTIONS = ['payment_options'];
-	var FACETS_ORDER_OF_DISPLAY = ['food_type', 'stars_count', 'payment_options'];
-	var FACETS_LABELS = {food_type: 'Cuisine/Food Type', stars_count: 'Rating', payment_options: 'Payment Options'};
+	var FACETS_STARS_CATEGORY = ['stars_count_category'];
+	var FACETS_ORDER_OF_DISPLAY = ['food_type', 'stars_count_category', 'payment_options'];
+	var FACETS_LABELS = {food_type: 'Cuisine/Food Type', stars_count_category: 'Rating', payment_options: 'Payment Options'};
 
 	// Algolia Search Client + Helper initialization
 	var algolia = algoliasearch(APPLICATION_ID, SEARCH_ONLY_API_KEY);
@@ -28,13 +27,16 @@ $(document).ready(function () {
 	$stats = $('#stats');
 	$facets = $('#facets');
 	$pagination = $('#pagination');
+	$leftColumn = $('#left-column');
+	$rightColumn = $('#right-column');
 
 	// Hogan templates binding
 	var hitTemplate = Hogan.compile($('#hit-template').text());
 	var statsTemplate = Hogan.compile($('#stats-template').text());
 	var facetTemplate = Hogan.compile($('#facet-template').text());
-	var paginationTemplate = Hogan.compile($('#pagination-template').text());
+	var ratingTemplate = Hogan.compile($('#rating-template').text());
 	var noResultsTemplate = Hogan.compile($('#no-results-template').text());
+	var paginationTemplate = Hogan.compile($('#pagination-template').text());
 
 	// Initial search which gets the first search by location. 
 	//There will be some latency when getting the first search, but that is because we need to get the user's location
@@ -45,10 +47,7 @@ $(document).ready(function () {
 	//for the information in query.
 	$searchInput
 	.on('input propertychange', function(e) {
-	  // toggleIconEmptyInput(query);
 	  var query = e.currentTarget.value;
-	  // algoliaHelper.setQueryParameter('aroundLatLng', '37.559720, -122.271010');
-	  // getLocation(query);
 	  var lat = sessionStorage.getItem('location.latitude');
 	  var lng = sessionStorage.getItem('location.longitude');
 	  if(lat && lng) {
@@ -69,23 +68,19 @@ $(document).ready(function () {
 	  renderStats(content);
 	  renderHits(content);
 	  renderFacets(content, state);
-	  renderPagination(content);
 	  handleNoResults(content);
+	  renderPagination(content);
 	  setHeight();
 	});
 
 	var setHeight = function() {
-		var leftCol = $("#left-column");
-		var paginationContainer = $('#pagination');
-		var hitsContainer = $('#hits');
-		var statsContainer = $('#stats');
-
-	    //Now need to set the padding heights of the hits, stats, and pagination because it will show up as 
+	    //Now need to set the padding heights of the hits, and stats because it will show up as 
 	    //odd white text when we first load our browser
-		paginationContainer.css('padding-bottom', '73px');
-		hitsContainer.css('padding', '0 0 10px 44px');
-		statsContainer.css('padding', '20px 40px');
-	   	leftCol.width('25%');
+		$hits.css('padding', '0 0 10px 44px');
+		$hits.css('min-height', '383px');
+		$stats.css('padding', '20px 40px');
+		$pagination.css('min-height', '93px');
+		$leftColumn.css('min-height', '574px');
 	};
 
 	//Show Facets when the results are loaded.
@@ -97,13 +92,29 @@ $(document).ready(function () {
 	    var facetResult = content.getFacetByName(facetName);
 	    if (!facetResult) continue;
 	    var facetContent = {};
-    	//Regular facets for payment or for food type
-	    facetContent = {
-	      facet: facetName,
-	      title: FACETS_LABELS[facetName],
-	      values: content.getFacetValues(facetName, {sortBy: ['isRefined:desc', 'count:desc']}),
-	    };
-	    facetsHtml += facetTemplate.render(facetContent);
+	    if($.inArray(facetName, FACETS_STARS_CATEGORY) !== -1) {
+	    	//For star count category, we need to sort the values by number
+	    	facetContent = {
+		      facet: facetName,
+		      title: FACETS_LABELS[facetName],
+		      values: content.getFacetValues(facetName, {
+		      	sortBy: function(a, b) {
+		      		if(a == b) return 0;
+		      		if(a > b) return 1;
+		      		if(b > a) return -1;
+		      	}
+		      })
+		    };
+		    facetsHtml += ratingTemplate.render(facetContent);
+	    } else {
+	    	//Regular facets for payment or for food type
+		    facetContent = {
+		      facet: facetName,
+		      title: FACETS_LABELS[facetName],
+		      values: content.getFacetValues(facetName, {sortBy: ['isRefined:desc', 'count:desc']}),
+		    };
+		   	facetsHtml += facetTemplate.render(facetContent);  
+	    }
 	  }
 	  $facets.html(facetsHtml);
 	}
@@ -111,50 +122,56 @@ $(document).ready(function () {
 	//Listens to click on fascet
 	$(document).on('click', '.toggle-refine', function(e) {
 	  e.preventDefault();
-	  algoliaHelper.toggleRefine($(this).data('facet'), $(this).data('value')).search();
+	  var facet = $(this).data('facet');
+	  var value = $(this).data('value');
+	  if(facet === 'stars_count_category') {
+	  	algoliaHelper.clearRefinements('stars_count').addNumericRefinement('stars_count', '>=', value).search();
+	  } else {
+	  	algoliaHelper.toggleRefine(facet, value).search();
+	  }
 	});
 
-	//Show the pagination "Show more/less"
 	function renderPagination(content) {
-	  var pages = [];
-	  if (content.page > 3) {
-	    pages.push({current: false, number: 1});
-	    pages.push({current: false, number: '...', disabled: true});
-	  }
-	  for (var p = content.page - 3; p < content.page + 3; ++p) {
-	    if (p < 0 || p >= content.nbPages) continue;
-	    pages.push({current: content.page === p, number: p + 1});
-	  }
-	  if (content.page + 3 < content.nbPages) {
-	    pages.push({current: false, number: '...', disabled: true});
-	    pages.push({current: false, number: content.nbPages});
-	  }
-	  var pagination = {
-	    pages: pages,
-	    prev_page: content.page > 0 ? content.page : false,
-	    next_page: content.page + 1 < content.nbPages ? content.page + 2 : false
-	  };
-	  $pagination.html(paginationTemplate.render(pagination));
+		if(content.hits.length <= 2) {
+			$('#show-more').css('display', 'none');
+		} else {
+			$pagination.html(paginationTemplate.render(pagination));
+		}
 	}
 
-	//Handling pagination click events
-	$(document).on('click', '.go-to-page', function(e) {
-	  e.preventDefault();
-	  $('html, body').animate({scrollTop: 0}, '500', 'swing');
-	  algoliaHelper.setCurrentPage(+$(this).data('page') - 1).search();
+	//Handle the Show More / Less button clicks where we will show more or less hits depending on if 
+	//Show Less or Show More is displayed
+	$(document).on('click', '#show-more', function(e) {
+	  	e.preventDefault();
+		$(this).text(function(i, text) {
+			if(text === "Show More") {
+				algoliaHelper.searchOnce({hitsPerPage: 6},
+			  	function(error, content, state) {
+			  		renderHits(content);
+			  		renderFacets(content, state);
+			  	});
+			  	return "Show Less";
+			} else {
+				algoliaHelper.searchOnce({hitsPerPage: 3},
+				function(error, content, state) {
+				  	renderHits(content);
+					renderFacets(content, state);
+				});
+				return "Show More";
+			}
+		});
 	});
+
 
 	//Function to call the $hits variable and use the hitTemplate to show the results on the page
 	function renderHits(content) {
 		var promise = new Promise(function(resolve, reject) {
 			$hits.html(hitTemplate.render(content));
-			resolve(content.hits.length);
+			resolve();
 		});
-		promise.then(function(numHits) {
+		promise.then(function() {
 			$(function() {
 			  $('span.stars').stars();
-			  //Change height of hits
-			  changeHitsHeight(numHits);
 			});
 		});
 		$.fn.stars = function() { 
@@ -169,33 +186,8 @@ $(document).ready(function () {
 		    // Replace the numerical value with stars
 		    $(this).empty().append($span);
 		  });
-		}
-	};
-
-	//Depending on how many hits we get, we have to dynamically change the height of the columns.
-	//This also has to do with the fact that the pagination (show more / less button) so the height doesn't look proper 
-	function changeHitsHeight(numHits) {
-		var leftCol = $("#left-column");
-		if( navigator.userAgent.toLowerCase().indexOf('firefox') > -1 ){
-			if(numHits === 1) {
-				leftCol.height("294px");	
-			} else if(numHits === 2) {
-				leftCol.height("420px");
-			} else {
-				leftCol.height("559px");
-			}
-		} else {
-			if(numHits === 1) {
-				leftCol.height("298px");	
-			} else if(numHits === 2) {
-				leftCol.height("425.5px");
-			} else {
-				leftCol.height("569.5px");
-			}
-		}
-	}			
-
-	
+		};
+	}
 
 	function renderStats(content) {
 	  //Divide the processingTime by 1000 because need to show as seconds, not MS
@@ -209,21 +201,12 @@ $(document).ready(function () {
 
 	//Show no results in search results section
 	function handleNoResults(content) {
-	  var rightColumn = $('#right-column');
-	  var leftColumn = $('#left-column');
 	  if (content.nbHits > 0) {
-	  	//Need to revert the search results css back to what it was originally
 	    $main.removeClass('no-results');
-	    rightColumn.width('75%');
-	    rightColumn.css('margin-left', '25%');
-		leftColumn.show();
 	    return;
 	  }
-	  //Set "no results" page to fill up the entire width & hide the left column
+	  //Set "no results" page to fill up the entire width & hide remaining CSS
 	  $main.addClass('no-results');
-      rightColumn.width('100%');
-      rightColumn.css('margin-left', '0%');
-      leftColumn.hide();
 	  var filters = [];
 	  $hits.html(noResultsTemplate.render({query: content.query, filters: filters}));
 	}

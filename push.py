@@ -39,9 +39,9 @@ def createIndex(appId, apiKey, indexName):
   #ones with the most reviews next. This way the user always sees the highest rated, highest reviewed restaurants
   #Near their location
   settings = {
-    'customRanking': ['desc(stars_count)', 'desc(reviews_count)'],
+    'customRanking': ['desc(stars_count_category)', 'desc(reviews_count)'],
     'searchableAttributes': ['name', 'food_type', 'address', 'neighborhood', 'city'],
-    'attributesForFaceting': ['food_type', 'stars_count', 'payment_options']
+    'attributesForFaceting': ['food_type', 'stars_count_category', 'payment_options']
   }
 
   index.set_settings(settings)
@@ -60,6 +60,8 @@ def parseCsv():
       for key, value in row.items():
         if key == 'stars_count' or key == 'reviews_count':
           newRow[key] = float(value)
+          if key == 'stars_count': 
+            newRow = createCountFacet(newRow, float(value))
         else:
           newRow[key] = value
       listRows.append(newRow)
@@ -75,6 +77,26 @@ def parseCsv():
     pass
 
   return restaurants_info_json
+#I think we want to keep a new key called star_count_category where we will create our facet based
+#on this metric. This will keep a certain count of all star_counts that are greater than a particular number
+#For example, if the star_count = 3.5, then we store it into a category called star_count_category = 3
+def createCountFacet(newRow, value):
+  starsCountCategory = 'stars_count_category'
+  listCounts = []
+  if(value >= 0):
+    listCounts.append(0)
+  if(value >= 1):
+    listCounts.append(1)
+  if(value >= 2):
+    listCounts.append(2)
+  if(value >= 3):
+    listCounts.append(3)
+  if(value >= 4):
+    listCounts.append(4)
+  if(value >= 5):
+    listCounts.append(5)
+  newRow[starsCountCategory] = listCounts
+  return newRow
 
 #Loop through restaurants_list json and set the Diners Club or Carte Blanche payment and set them to Discover cards.
 #For JCB or Pay with Open Table or Cash Only, we don't include them into filterable facets

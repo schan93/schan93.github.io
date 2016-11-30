@@ -31,7 +31,6 @@
     </div>
   </main>
 
-
     <!-- Search hit results with Image on the left and name, rating (followed by number of ratings), 
     food type / location / price range -->
     <script type="text/template" id="hit-template">
@@ -50,23 +49,13 @@
           <p class="hit-description">{{{ food_type }}} | {{{ neighborhood }}} | {{ price_range }} </p>
         </div>
       </div>
+
       {{/hits}}
     </script>
 
     <!-- Stats template -->
     <script type="text/template" id="stats-template">
-      <span><h3>{{ nbHits }} result{{#nbHits_plural}}s{{/nbHits_plural}} found<span class="found-in"> in {{ processingTimeMS }} seconds</h3></span>
-    </script>
-
-    <!-- Pagination template -->
-    <script type="text/template" id="pagination-template">
-      <ul>
-        <li {{^prev_page}}class="hidden"{{/prev_page}}><a href="#" {{#prev_page}}class="go-to-page" data-page="{{ prev_page }}"{{/prev_page}}>Show Less</a></li>
-        {{#pages}}
-<!--         <li class="{{#current}}active{{/current}} {{#disabled}}disabled{{/disabled}}"><a href="#" {{^disabled}} class="go-to-page" data-page="{{ number }}" {{/disabled}}>{{ number }}</a></li>
-        {{/pages}} -->
-        <li {{^next_page}}class="hidden"{{/next_page}}><a href="#" {{#next_page}}class="go-to-page" data-page="{{ next_page }}"{{/next_page}}>Show more</a></li>
-      </ul>
+      <span><h3>{{ nbHits }} result{{#nbHits_plural}}s{{/nbHits_plural}} found<span class="found-in"> in {{ processingTimeMS }} seconds</span></h3></span>
     </script>
 
     <!-- Facet template -->
@@ -85,18 +74,33 @@
       </div>
     </script>
 
+    <!-- Rating template -->
+    <script type="text/template" id="rating-template">
+      <div class="facet">
+        <h3>{{ title }}</h3>
+        <ul>
+          {{#values}}
+          <li>
+            <a href="" class="toggle-refine" data-facet="{{ facet }}" data-value="{{ name }}">
+              <span class="stars-empty"><span class="stars">{{ name }}</span></span>
+            </a>
+          </li>
+          {{/values}}
+        </ul>
+      </div>
+    </script>
+
+
+    <!-- Pagination template -->
+    <script type="text/template" id="pagination-template"> 
+      <button id="show-more">Show More</button>
+    </script>
+
     <!-- No-Results template -->
     <script type="text/template" id="no-results-template">
       <div id="no-results-message">
         <div class="no-results-container">We didn't find any results for the search <em>"{{ query }}"</em>.</div>
-        <ul>
-          {{#filters}}
-          <li class="{{ class }}" data-facet="{{ facet }}" data-value="{{ facet_value }}">
-            {{ label }}<span class="value">{{ label_value }}</span><a class="remove"><img src="img/remove.svg"/></a>
-          </li>
-          {{/filters}}
-          <br>
-        </ul>
+        <br>
       </div>
     </script>
 
