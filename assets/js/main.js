@@ -145,7 +145,7 @@ $(document).ready(function () {
 	  	e.preventDefault();
 		$(this).text(function(i, text) {
 			if(text === "Show More") {
-				algoliaHelper.searchOnce({hitsPerPage: 6},
+				algoliaHelper.searchOnce({hitsPerPage: 5000},
 			  	function(error, content, state) {
 			  		renderHits(content);
 			  		renderFacets(content, state);
