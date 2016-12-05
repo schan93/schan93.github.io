@@ -49,6 +49,7 @@ $(document).ready(function () {
 	$searchInput
 	.on('input propertychange', function(e) {
 	  var query = e.currentTarget.value;
+	  console.log("E: ", e);
 	  var lat = sessionStorage.getItem('location.latitude');
 	  var lng = sessionStorage.getItem('location.longitude');
 	  if(lat && lng) {
@@ -59,11 +60,6 @@ $(document).ready(function () {
 	})
 	.focus();
 
-	//Put the empty class on the query if the query is not empty.
-	function toggleIconEmptyInput(query) {
-	  $searchInputIcon.toggleClass('empty', query.trim() !== '');
-	}
-
 	//Once we get the search results, we want to display the results and stats of our search result.
 	algoliaHelper.on('result', function(content, state) {
 	  renderStats(content);
@@ -71,18 +67,7 @@ $(document).ready(function () {
 	  renderFacets(content, state);
 	  handleNoResults(content);
 	  renderPagination(content);
-	  setHeight();
 	});
-
-	var setHeight = function() {
-	    //Now need to set the padding heights of the hits, and stats because it will show up as 
-	    //odd white text when we first load our browser
-		$hits.css('padding', '0 0 10px 44px');
-		$hits.css('min-height', '383px');
-		$stats.css('padding', '20px 40px');
-		$pagination.css('min-height', '93px');
-		$leftColumn.css('min-height', '574px');
-	};
 
 	//Show Facets when the results are loaded.
 	function renderFacets(content, state) {
@@ -93,28 +78,17 @@ $(document).ready(function () {
 	    var facetResult = content.getFacetByName(facetName);
 	    if (!facetResult) continue;
 	    var facetContent = {};
+    	facetContent = {
+	      facet: facetName,
+	      title: FACETS_LABELS[facetName],
+	      values: content.getFacetValues(facetName, {sortBy: ['count:desc']}),
+	      disjunctive: $.inArray(facetName, PARAMS.disjunctiveFacets) !== -1
+	    };
 	    if($.inArray(facetName, FACETS_STARS_CATEGORY) !== -1) {
-	    	//For star count category, we need to sort the values by number
-	    	facetContent = {
-		      facet: facetName,
-		      title: FACETS_LABELS[facetName],
-		      values: content.getFacetValues(facetName, {
-		      	sortBy: function(a, b) {
-		      		if(a == b) return 0;
-		      		if(a > b) return 1;
-		      		if(b > a) return -1;
-		      	}
-		      })
-		    };
+	    	//For star count
 		    facetsHtml += ratingTemplate.render(facetContent);
 	    } else {
 	    	//Regular facets for payment or for food type
-		    facetContent = {
-		      facet: facetName,
-		      title: FACETS_LABELS[facetName],
-		      values: content.getFacetValues(facetName, {sortBy: ['isRefined:desc', 'count:desc']}),
-		      disjunctive: $.inArray(facetName, PARAMS.disjunctiveFacets) !== -1
-		    };
 		   	facetsHtml += facetTemplate.render(facetContent);  
 	    }
 	  }
@@ -163,7 +137,6 @@ $(document).ready(function () {
 			}
 		});
 	});
-
 
 	//Function to call the $hits variable and use the hitTemplate to show the results on the page
 	function renderHits(content) {
@@ -215,6 +188,8 @@ $(document).ready(function () {
 
 	//Function to get the user's location so tft queries are based on user's current location
 	function getLocation() {
+	  //The no-results class is removed when handleNoResults is called which is after every query
+	  $main.addClass('no-results');
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           var pos = {
@@ -237,9 +212,10 @@ $(document).ready(function () {
 	}
 
 	function locationError() {
-		//No location to store
+	    //The no-results class is removed when handleNoResults is called which is after every query
 		sessionStorage.setItem('location.latitude', '');
         sessionStorage.setItem('location.longitude', '');
 		algoliaHelper.search();
+		$main.removeClass('remove-results');
 	}
 });
