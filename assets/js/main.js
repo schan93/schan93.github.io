@@ -49,7 +49,6 @@ $(document).ready(function () {
 	$searchInput
 	.on('input propertychange', function(e) {
 	  var query = e.currentTarget.value;
-	  console.log("E: ", e);
 	  var lat = sessionStorage.getItem('location.latitude');
 	  var lng = sessionStorage.getItem('location.longitude');
 	  if(lat && lng) {
